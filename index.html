@@ -3,121 +3,66 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Aniversários 1 a 100</title>
+<title>Fatos da sua vida</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&display=swap" rel="stylesheet">
 
 <style>
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
 body {
-    font-family: 'Fredoka', Arial, Helvetica, sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-
-    background: linear-gradient(to bottom, #87cefa, #e0f7ff);
-    min-height: 100vh;
+    font-family: 'Fredoka', Arial, sans-serif;
+    background: #f0f6ff;
     padding: 20px;
 }
 
 .container {
-    max-width: 600px;
+    max-width: 800px;
     margin: auto;
-    background: rgba(255,255,255,0.95);
+    background: #fff;
     padding: 20px;
-    border-radius: 12px;
+    border-radius: 10px;
 }
 
 h1 {
     text-align: center;
-    margin-bottom: 10px;
 }
 
 input, button {
     width: 100%;
-    padding: 12px;
+    padding: 10px;
     margin-top: 10px;
-    font-size: 16px;
-    border-radius: 6px;
-    border: 1px solid #ccc;
 }
 
 button {
-    background: #5aa9ff;
-    color: white;
+    background: #4a90e2;
+    color: #fff;
     border: none;
     cursor: pointer;
 }
 
-ul {
-    list-style: none;
-    margin-top: 20px;
+.card {
+    background: #f9f9f9;
+    margin-top: 15px;
+    padding: 15px;
+    border-radius: 8px;
 }
 
-li {
-    background: #f2f2f2;
-    margin-bottom: 8px;
-    padding: 12px;
+.event {
+    margin-top: 10px;
+    padding: 10px;
+    background: #eef3ff;
     border-radius: 6px;
     cursor: pointer;
-    transition: 0.3s;
 }
 
-li:hover {
-    transform: scale(1.02);
+.event-details {
+    display: none;
+    margin-top: 8px;
 }
 
-.details {
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height 0.3s ease;
-    font-size: 14px;
-}
-
-.details.open {
-    max-height: 100px;
-    margin-top: 6px;
-}
-
-.weekend {
-    background: #ffe0e0;
-}
-
-/* overlays */
-.overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 28px;
-    text-align: center;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 1s ease;
-    z-index: 999;
-}
-
-.overlay.show {
-    opacity: 1;
-    visibility: visible;
-}
-
-#overlay1 {
-    background: #ffb6c1;
-    color: #000;
-}
-
-#overlay100 {
-    background: #000;
-    color: #fff;
+.event img {
+    width: 100%;
+    border-radius: 6px;
+    margin-top: 5px;
 }
 </style>
 </head>
@@ -125,113 +70,145 @@ li:hover {
 <body>
 
 <div class="container">
-    <h1>Aniversários de 1 a 100 anos</h1>
+    <h1>Seus dados + história do mundo</h1>
 
-    <input type="text" id="birthdate" placeholder="DD/MM/AAAA" maxlength="10">
-    <button onclick="calcular()">Calcular</button>
+    <input id="nome" placeholder="Nome">
+    <input id="sobrenome" placeholder="Sobrenome">
+    <input id="data" placeholder="DD/MM/AAAA" maxlength="10">
+    <input id="altura" placeholder="Altura (cm)">
+    <input id="peso" placeholder="Peso (kg)">
+    <button onclick="gerar()">Gerar</button>
 
-    <ul id="lista"></ul>
+    <div id="resultado"></div>
 </div>
 
-<div id="overlay1" class="overlay">ENTÃO VOCÊ NASCEU! QUE ALEGRIA.</div>
-<div id="overlay100" class="overlay">QUE VOCE CHEGA LÁ, AMIGO!</div>
-
 <script>
-const input = document.getElementById("birthdate");
+// base simples real (exemplos históricos reais)
+const eventos = {
+    "27/04": [
+        {
+            ano: 1828,
+            texto: "Inauguração do Zoológico de Londres.",
+            img: "https://upload.wikimedia.org/wikipedia/commons/3/3e/London_Zoo_entrance.jpg",
+            link: "https://pt.wikipedia.org/wiki/Jardim_Zool%C3%B3gico_de_Londres"
+        },
+        {
+            ano: 1994,
+            texto: "África do Sul realiza sua primeira eleição multirracial.",
+            img: "https://upload.wikimedia.org/wikipedia/commons/5/5f/South_Africa_election_1994.jpg",
+            link: "https://pt.wikipedia.org/wiki/Elei%C3%A7%C3%B5es_gerais_na_%C3%81frica_do_Sul_em_1994"
+        }
+    ],
+    "11/09": [
+        {
+            ano: 2001,
+            texto: "Ataques às Torres Gêmeas em Nova York.",
+            img: "https://upload.wikimedia.org/wikipedia/commons/d/d2/WTC_smoking_on_9-11.jpeg",
+            link: "https://pt.wikipedia.org/wiki/Atentados_de_11_de_setembro_de_2001"
+        }
+    ]
+};
 
-// máscara e bloqueio
-input.addEventListener("input", function() {
-    let v = this.value.replace(/\D/g, '');
-
+// máscara
+document.getElementById("data").addEventListener("input", function() {
+    let v = this.value.replace(/\D/g,'');
     if (v.length > 2) v = v.slice(0,2) + '/' + v.slice(2);
     if (v.length > 5) v = v.slice(0,5) + '/' + v.slice(5,9);
-
     this.value = v;
 });
 
-// validação
-function validarData(str) {
-    if (str.length !== 10) return false;
+// cálculo idade
+function calcularIdade(data) {
+    const hoje = new Date();
+    let anos = hoje.getFullYear() - data.getFullYear();
+    let meses = hoje.getMonth() - data.getMonth();
+    let dias = hoje.getDate() - data.getDate();
 
-    const [d,m,a] = str.split("/").map(Number);
-    const data = new Date(a, m-1, d);
+    if (dias < 0) {
+        meses--;
+        dias += 30;
+    }
+    if (meses < 0) {
+        anos--;
+        meses += 12;
+    }
 
-    return data.getFullYear() === a &&
-           data.getMonth() === m-1 &&
-           data.getDate() === d;
+    return {anos, meses, dias};
 }
 
-function diaSemana(data) {
-    const dias = ["domingo","segunda-feira","terça-feira","quarta-feira","quinta-feira","sexta-feira","sábado"];
-    return dias[data.getDay()];
-}
+function gerar() {
+    const nome = document.getElementById("nome").value;
+    const sobrenome = document.getElementById("sobrenome").value;
+    const dataStr = document.getElementById("data").value;
+    const altura = Number(document.getElementById("altura").value);
+    const peso = Number(document.getElementById("peso").value);
 
-function calcular() {
-    const lista = document.getElementById("lista");
-    lista.innerHTML = "";
+    if (!nome || !sobrenome || !altura || !peso || dataStr.length !== 10) {
+        alert("Preencha corretamente");
+        return;
+    }
 
-    if (!validarData(input.value)) {
+    const [d,m,a] = dataStr.split("/").map(Number);
+    const nascimento = new Date(a, m-1, d);
+
+    if (isNaN(nascimento)) {
         alert("Data inválida");
         return;
     }
 
-    const [dia, mes, ano] = input.value.split("/").map(Number);
+    const idade = calcularIdade(nascimento);
 
-    for (let i = 1; i <= 100; i++) {
+    const imc = peso / ((altura/100)*(altura/100));
+    let classif = "";
+    if (imc < 18.5) classif = "baixo peso";
+    else if (imc < 25) classif = "normal";
+    else if (imc < 30) classif = "sobrepeso";
+    else classif = "obesidade";
 
-        let data = new Date(ano + i, mes-1, dia);
+    const diasVida = Math.floor((new Date() - nascimento) / (1000*60*60*24));
 
-        // ajuste bissexto (29/02)
-        if (mes === 2 && dia === 29 && data.getMonth() !== 1) {
-            data = new Date(ano + i, 2, 0);
+    const chave = dataStr.slice(0,5);
+
+    let html = `
+    <div class="card">
+        <h3>${nome} ${sobrenome}</h3>
+        <p>Idade: ${idade.anos} anos, ${idade.meses} meses, ${idade.dias} dias</p>
+        <p>Dias de vida: ${diasVida}</p>
+        <p>IMC: ${imc.toFixed(1)} (${classif})</p>
+    </div>
+
+    <div class="card">
+        <h3>o que aconteceu no mundo nos seus aniversários</h3>
+    `;
+
+    if (eventos[chave]) {
+        for (let i = 5; i <= idade.anos; i += 5) {
+            html += `<div class="event" onclick="toggle(this)">
+                <strong>Quando você fez ${i} anos</strong>
+                <div class="event-details">`;
+
+            eventos[chave].forEach(e => {
+                html += `
+                <p>${e.ano} - ${e.texto}</p>
+                <img src="${e.img}">
+                <a href="${e.link}" target="_blank">Ver mais</a>
+                `;
+            });
+
+            html += `</div></div>`;
         }
-
-        const li = document.createElement("li");
-
-        // 1 ano
-        if (i === 1) {
-            li.innerHTML = "<strong>1 ano</strong>";
-            li.onclick = () => {
-                const o = document.getElementById("overlay1");
-                o.classList.add("show");
-                setTimeout(() => o.classList.remove("show"), 2500);
-            };
-            lista.appendChild(li);
-            continue;
-        }
-
-        // 100 anos
-        if (i === 100) {
-            li.innerHTML = "<strong>100 anos</strong>";
-            li.onclick = () => {
-                const o = document.getElementById("overlay100");
-                o.classList.add("show");
-                setTimeout(() => o.classList.remove("show"), 2500);
-            };
-            lista.appendChild(li);
-            continue;
-        }
-
-        const semana = diaSemana(data);
-        const isWeekend = semana === "sábado" || semana === "domingo";
-
-        if (isWeekend) li.classList.add("weekend");
-
-        li.innerHTML = `
-            <div><strong>${i} anos</strong></div>
-            <div class="details">
-                Data: ${data.toLocaleDateString('pt-BR')}<br>
-                Dia: ${semana}
-            </div>
-        `;
-
-        li.addEventListener("click", function() {
-            const d = this.querySelector(".details");
-            d.classList.toggle("open");
-        });
-
-        lista.appendChild(li);
+    } else {
+        html += "<p>Não há eventos cadastrados para essa data.</p>";
     }
+
+    html += "</div>";
+
+    document.getElementById("resultado").innerHTML = html;
+}
+
+function toggle(el) {
+    const d = el.querySelector(".event-details");
+    d.style.display = d.style.display === "block" ? "none" : "block";
 }
 </script>
 
