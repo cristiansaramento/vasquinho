@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aniversários 1 a 100</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Fredoka', Arial, Helvetica, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+
+    background: linear-gradient(to bottom, #87cefa, #e0f7ff);
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.container {
+    max-width: 600px;
+    margin: auto;
+    background: rgba(255,255,255,0.95);
+    padding: 20px;
+    border-radius: 12px;
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+input, button {
+    width: 100%;
+    padding: 12px;
+    margin-top: 10px;
+    font-size: 16px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+}
+
+button {
+    background: #5aa9ff;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+ul {
+    list-style: none;
+    margin-top: 20px;
+}
+
+li {
+    background: #f2f2f2;
+    margin-bottom: 8px;
+    padding: 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+li:hover {
+    transform: scale(1.02);
+}
+
+.details {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+    font-size: 14px;
+}
+
+.details.open {
+    max-height: 100px;
+    margin-top: 6px;
+}
+
+.weekend {
+    background: #ffe0e0;
+}
+
+/* overlays */
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 28px;
+    text-align: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 1s ease;
+    z-index: 999;
+}
+
+.overlay.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+#overlay1 {
+    background: #ffb6c1;
+    color: #000;
+}
+
+#overlay100 {
+    background: #000;
+    color: #fff;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+    <h1>Aniversários de 1 a 100 anos</h1>
+
+    <input type="text" id="birthdate" placeholder="DD/MM/AAAA" maxlength="10">
+    <button onclick="calcular()">Calcular</button>
+
+    <ul id="lista"></ul>
+</div>
+
+<div id="overlay1" class="overlay">ENTÃO VOCÊ NASCEU! QUE ALEGRIA.</div>
+<div id="overlay100" class="overlay">QUE VOCE CHEGA LÁ, AMIGO!</div>
+
+<script>
+const input = document.getElementById("birthdate");
+
+// máscara e bloqueio
+input.addEventListener("input", function() {
+    let v = this.value.replace(/\D/g, '');
+
+    if (v.length > 2) v = v.slice(0,2) + '/' + v.slice(2);
+    if (v.length > 5) v = v.slice(0,5) + '/' + v.slice(5,9);
+
+    this.value = v;
+});
+
+// validação
+function validarData(str) {
+    if (str.length !== 10) return false;
+
+    const [d,m,a] = str.split("/").map(Number);
+    const data = new Date(a, m-1, d);
+
+    return data.getFullYear() === a &&
+           data.getMonth() === m-1 &&
+           data.getDate() === d;
+}
+
+function diaSemana(data) {
+    const dias = ["domingo","segunda-feira","terça-feira","quarta-feira","quinta-feira","sexta-feira","sábado"];
+    return dias[data.getDay()];
+}
+
+function calcular() {
+    const lista = document.getElementById("lista");
+    lista.innerHTML = "";
+
+    if (!validarData(input.value)) {
+        alert("Data inválida");
+        return;
+    }
+
+    const [dia, mes, ano] = input.value.split("/").map(Number);
+
+    for (let i = 1; i <= 100; i++) {
+
+        let data = new Date(ano + i, mes-1, dia);
+
+        // ajuste bissexto (29/02)
+        if (mes === 2 && dia === 29 && data.getMonth() !== 1) {
+            data = new Date(ano + i, 2, 0);
+        }
+
+        const li = document.createElement("li");
+
+        // 1 ano
+        if (i === 1) {
+            li.innerHTML = "<strong>1 ano</strong>";
+            li.onclick = () => {
+                const o = document.getElementById("overlay1");
+                o.classList.add("show");
+                setTimeout(() => o.classList.remove("show"), 2500);
+            };
+            lista.appendChild(li);
+            continue;
+        }
+
+        // 100 anos
+        if (i === 100) {
+            li.innerHTML = "<strong>100 anos</strong>";
+            li.onclick = () => {
+                const o = document.getElementById("overlay100");
+                o.classList.add("show");
+                setTimeout(() => o.classList.remove("show"), 2500);
+            };
+            lista.appendChild(li);
+            continue;
+        }
+
+        const semana = diaSemana(data);
+        const isWeekend = semana === "sábado" || semana === "domingo";
+
+        if (isWeekend) li.classList.add("weekend");
+
+        li.innerHTML = `
+            <div><strong>${i} anos</strong></div>
+            <div class="details">
+                Data: ${data.toLocaleDateString('pt-BR')}<br>
+                Dia: ${semana}
+            </div>
+        `;
+
+        li.addEventListener("click", function() {
+            const d = this.querySelector(".details");
+            d.classList.toggle("open");
+        });
+
+        lista.appendChild(li);
+    }
+}
+</script>
+
+</body>
+</html>
